@@ -1,12 +1,12 @@
 #include "Game.h"
 
 int main (int argc, char* argv[]) {
-  steering::Game game;
+    steering::Game game;
 
-  if (game.Init()) {
-    game.Mainloop();
-  }
-  game.Shutdown();
+    if (game.Init()) {
+        game.Mainloop();
+    }
+    game.Shutdown();
 
-  return 0;
+    return 0;
 }
