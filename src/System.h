@@ -79,6 +79,33 @@ inline void Crosshair(glm::vec2 target, ecs::Scene &scene) {
         transform->position.y = target.y;
     }
 }
+
+/**
+ * Update the position for wraparound effect within
+ * the boundaries of the screen width/height.
+ */
+inline void Wraparound(int screenW, int screenH, ecs::Scene &scene) {
+    for (auto id : ecs::SceneView<component::Transform>(scene)) {
+        auto transform = scene.GetComponent<component::Transform>(id);
+
+        auto maxX = static_cast<float>(screenW);
+        auto maxY = static_cast<float>(screenH);
+
+        // Wraparound X
+        if (maxX < transform->position.x) {
+            transform->position.x = 0.0f;
+        } else if (transform->position.x < 0.0f) {
+            transform->position.x = maxX;
+        }
+
+        // Wraparound Y
+        if (maxY < transform->position.y) {
+            transform->position.y = 0.0f;
+        } else if (transform->position.y < 0.0f) {
+            transform->position.y = maxY;
+        }
+    }
+}
 }  // update
 
 namespace behavior {

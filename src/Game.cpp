@@ -125,6 +125,7 @@ void Game::Update() {
 
 
     update::Crosshair(glm::vec2(mouse_.x, mouse_.y), scene_);
+    update::Wraparound(SCREEN_W, SCREEN_H, scene_);
     behavior::Seek(glm::vec2(mouse_.x, mouse_.y), scene_, dt);
 
     ticks_ = SDL_GetTicks();
