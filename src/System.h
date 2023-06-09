@@ -162,6 +162,56 @@ inline void Seek(glm::vec2 target, ecs::Scene &scene, float dt) {
         t->rotation = glm::normalize(m->velocity);
     }
 }
+
+/**
+ * Flee behavior for entities.
+ */
+inline void Flee(glm::vec2 target, ecs::Scene &scene, float dt) {
+    for (auto id : ecs::SceneView<component::Flee,
+                                  component::Transform,
+                                  component::Move>(scene)) {
+        auto f = scene.GetComponent<component::Flee>(id);
+        auto m = scene.GetComponent<component::Move>(id);
+        auto t = scene.GetComponent<component::Transform>(id);
+
+        auto direct = t->position - target;  // Flee direction from the target
+        auto dist = glm::length(direct);
+        if (dist < glm::epsilon<float>()) {
+            continue;
+        }
+        direct /= dist;
+
+        auto velocity = direct * m->maxSpeed;
+        auto steering = velocity - m->velocity;
+
+        auto lenS = glm::length(steering);
+        if (m->maxForce < lenS) {
+            steering /= lenS;
+            steering *= m->maxForce;
+        }
+
+        // Zero steering force if the target isn't in the escape radius
+        if (f->radius < dist) {
+            steering = glm::vec2(0.0f);
+        }
+        auto acc = steering / m->mass;
+        m->velocity += acc * dt;
+
+        auto lenV1 = glm::length(m->velocity);
+        if (m->maxSpeed < lenV1) {
+            m->velocity /= lenV1;
+            m->velocity *= m->maxSpeed;
+        }
+
+        t->position += m->velocity * dt;
+
+        auto lenV2 = glm::length(m->velocity);
+        if (lenV2 < glm::epsilon<float>()) {
+            return;
+        }
+        t->rotation = glm::normalize(m->velocity);
+    }
+}
 }  // behavior
 
 }  // steering

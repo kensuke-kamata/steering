@@ -45,7 +45,7 @@ struct Shape {
     Shape() = default;
     Shape(float radius) : radius(radius) {}
 
-    float radius;
+    float radius{ 1.0f };
 };
 
 struct Triangle : Shape {
@@ -59,6 +59,13 @@ struct Crosshair : Shape {
 };
 
 struct Seek {};
+
+struct Flee {
+    Flee() = default;
+    Flee(float radius) : radius(radius) {}
+
+    float radius{ 100.0f };
+};
 
 }  // component
 }  // steering
