@@ -67,5 +67,12 @@ struct Flee {
     float radius{ 100.0f };
 };
 
+struct Arrive {
+    Arrive() = default;
+    Arrive(float dec) : deceleration(dec) {}
+
+    float deceleration{ 2.0f };
+};
+
 }  // component
 }  // steering

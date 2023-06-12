@@ -212,6 +212,52 @@ inline void Flee(glm::vec2 target, ecs::Scene &scene, float dt) {
         t->rotation = glm::normalize(m->velocity);
     }
 }
+
+inline void Arrive(glm::vec2 target, ecs::Scene &scene, float dt) {
+    for (auto id : ecs::SceneView<component::Arrive,
+                                  component::Transform,
+                                  component::Move>(scene)) {
+        auto a = scene.GetComponent<component::Arrive>(id);
+        auto m = scene.GetComponent<component::Move>(id);
+        auto t = scene.GetComponent<component::Transform>(id);
+
+        auto direct = target - t->position;
+        auto dist = glm::length(direct);
+
+        auto steering = glm::zero<glm::vec2>();
+        if (glm::epsilon<float>() < dist) {
+            auto speed = static_cast<float>(dist / (a->deceleration));
+            speed = glm::min<float>(speed, m->maxSpeed);
+
+            auto velocity = direct * speed / dist;
+            steering = velocity - m->velocity;
+        }
+
+        auto lenS = glm::length(steering);
+        if (m->maxForce < lenS) {
+            steering /= lenS;
+            steering *= m->maxForce;
+        }
+
+        auto acc = steering / m->mass;
+        m->velocity += acc * dt;
+
+        auto lenV1 = glm::length(m->velocity);
+        if (m->maxSpeed < lenV1) {
+            m->velocity /= lenV1;
+            m->velocity *= m->maxSpeed;
+        }
+
+        auto lenV2 = glm::length(m->velocity);
+        if (lenV2 < 10.0f) {
+            // No need to adjust position or rotation if the agent is within
+            // a certain proximity to the target.
+            return;
+        }
+        t->position += m->velocity * dt;
+        t->rotation = glm::normalize(m->velocity);
+    }
+}
 }  // behavior
 
 }  // steering

@@ -39,7 +39,9 @@ bool Game::Init() {
     }
 
     auto agent = scene_.NewEntity();
-    scene_.AddComponent<component::Seek>(agent);
+    // scene_.AddComponent<component::Seek>(agent);
+    // scene_.AddComponent<component::Flee>(agent, 100.0f);
+    scene_.AddComponent<component::Arrive>(agent, 2.0f);
     scene_.AddComponent<component::Triangle>(
         agent,
         15.0f // radius
@@ -48,7 +50,7 @@ bool Game::Init() {
         agent,
         glm::vec2(125.0f, 125.0f), // position
         glm::vec2(0.0f, -1.0f),    // rotation (head)
-        glm::vec2(0.75f, 1.0f)      // scale
+        glm::vec2(0.75f, 1.0f)     // scale
     );
     scene_.AddComponent<component::Move>(
         agent,
@@ -126,7 +128,10 @@ void Game::Update() {
 
     update::Crosshair(glm::vec2(mouse_.x, mouse_.y), scene_);
     update::Wraparound(SCREEN_W, SCREEN_H, scene_);
+
     behavior::Seek(glm::vec2(mouse_.x, mouse_.y), scene_, dt);
+    behavior::Flee(glm::vec2(mouse_.x, mouse_.y), scene_, dt);
+    behavior::Arrive(glm::vec2(mouse_.x, mouse_.y), scene_, dt);
 
     ticks_ = SDL_GetTicks();
 }
