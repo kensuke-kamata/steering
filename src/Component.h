@@ -77,10 +77,18 @@ struct Arrive {
 };
 
 struct Pursuit {
-    Pursuit () = default;
-    Pursuit (ecs::Entity::Id evaderId) : evaderId(evaderId) {}
+    Pursuit() = default;
+    Pursuit(ecs::Entity::Id evaderId) : evaderId(evaderId) {}
 
     ecs::Entity::Id evaderId = -1;
+};
+
+struct Evade {
+    Evade() = default;
+    Evade(ecs::Entity::Id evaderId) : evaderId(evaderId) {}
+
+    ecs::Entity::Id evaderId = -1;
+
 };
 
 }  // component
