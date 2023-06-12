@@ -45,9 +45,6 @@ struct Seek {};
 ```
 
 ```c++
-// Add Component
-scene.AddComponent<component::Seek>(agent);
-
 // System interface
 inline void Seek(glm::vec2 target, ecs::Scene &scene, float dt);
 ```
@@ -65,9 +62,6 @@ struct Flee {
 ```
 
 ```c++
-// Add Component
-scene.AddComponent<component::Flee>(agent);
-
 // System interface
 inline void Flee(glm::vec2 target, ecs::Scene &scene, float dt);
 ```
@@ -85,9 +79,23 @@ struct Arrive {
 ```
 
 ```c++
-// Add Component
-scene.AddComponent<component::Arrive>(agent);
-
 // System interface
 inline void Arrive(glm::vec2 target, ecs::Scene &scene, float dt);
+```
+
+### `Pursuit`
+
+```c++
+// Defined Component
+struct Pursuit {
+    Pursuit () = default;
+    Pursuit (ecs::Entity::Id evaderId) : evaderId(evaderId) {}
+
+    ecs::Entity::Id evaderId = -1;
+};
+```
+
+```c++
+// System interface
+inline void Arrive(ecs::Scene &scene, float dt);
 ```
