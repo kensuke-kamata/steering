@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 
+#include <ECS.h>
+
 namespace steering {
 namespace component {
 
@@ -72,6 +74,13 @@ struct Arrive {
     Arrive(float dec) : deceleration(dec) {}
 
     float deceleration{ 2.0f };
+};
+
+struct Pursuit {
+    Pursuit () = default;
+    Pursuit (ecs::Entity::Id evaderId) : evaderId(evaderId) {}
+
+    ecs::Entity::Id evaderId = -1;
 };
 
 }  // component

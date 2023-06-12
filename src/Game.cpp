@@ -38,10 +38,29 @@ bool Game::Init() {
         return false;
     }
 
+    auto evader = scene_.NewEntity();
+    scene_.AddComponent<component::Seek>(evader);
+    scene_.AddComponent<component::Triangle>(
+        evader,
+        7.5f // radius
+    );
+    scene_.AddComponent<component::Transform>(
+        evader,
+        glm::vec2(380.0f, 380.0f), // position
+        glm::vec2(0.0f, -1.0f),    // rotation (head)
+        glm::vec2(0.75f, 1.0f)     // scale
+    );
+    scene_.AddComponent<component::Move>(
+        evader,
+        glm::vec2(0.0f, 0.0f), // velocity
+          1.0f, // mass
+        200.0f, // max speed
+        100.0f  // max force
+    );
+    scene_.AddComponent<component::Color>(evader, 255, 0, 255, 255);
+
     auto agent = scene_.NewEntity();
-    // scene_.AddComponent<component::Seek>(agent);
-    // scene_.AddComponent<component::Flee>(agent, 100.0f);
-    scene_.AddComponent<component::Arrive>(agent, 2.0f);
+    scene_.AddComponent<component::Pursuit>(agent, evader);
     scene_.AddComponent<component::Triangle>(
         agent,
         15.0f // radius
@@ -132,6 +151,7 @@ void Game::Update() {
     behavior::Seek(glm::vec2(mouse_.x, mouse_.y), scene_, dt);
     behavior::Flee(glm::vec2(mouse_.x, mouse_.y), scene_, dt);
     behavior::Arrive(glm::vec2(mouse_.x, mouse_.y), scene_, dt);
+    behavior::Pursuit(scene_, dt);
 
     ticks_ = SDL_GetTicks();
 }

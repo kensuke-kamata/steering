@@ -258,6 +258,96 @@ inline void Arrive(glm::vec2 target, ecs::Scene &scene, float dt) {
         t->rotation = glm::normalize(m->velocity);
     }
 }
-}  // behavior
 
+inline float TurnaroundTime(component::Transform *pTransform,
+                            component::Transform *eTransform) {
+    auto to = glm::normalize(eTransform->position - pTransform->position);
+    auto dot = glm::dot(pTransform->rotation, to);
+
+    const float coefficient = 0.5f;
+    return (dot - 1.0f) * -coefficient;
+}
+
+inline void Pursuit(ecs::Scene &scene, float dt) {
+    for (auto id : ecs::SceneView<component::Pursuit,
+                                  component::Transform,
+                                  component::Move>(scene)) {
+        auto p = scene.GetComponent<component::Pursuit>(id);
+        auto t = scene.GetComponent<component::Transform>(id);
+        auto m = scene.GetComponent<component::Move>(id);
+
+        if (!ecs::Entity::IsValid(p->evaderId)) {
+            continue;
+        }
+        if (!scene.HasComponent<component::Transform>(p->evaderId) ||
+            !scene.HasComponent<component::Move>(p->evaderId)) {
+            continue;
+        }
+        auto et = scene.GetComponent<component::Transform>(p->evaderId);
+        auto em = scene.GetComponent<component::Move>(p->evaderId);
+
+        auto to = et->position - t->position;
+        auto dot = glm::dot(t->rotation, et->rotation);
+
+        // Init the target with the evader's position
+        auto target = et->position;
+        // If the evader is ahead of the pursuer and
+        // both are heading the same direction within 18 degrees (acos(dot) = 0.95)
+        // just seek to the evader's position
+
+        // If the evader isn't ahead so guessing where it is.
+        // How long the pursuer can predict the evader's future position
+        // is proportional to the distance between them and
+        // inversaly proportional to the sum of their speeds.
+        auto angle = glm::acos(dot) * 180 / glm::pi<float>();
+        auto dot2 = glm::dot(t->rotation, to);
+        if ((dot2 < 0) || dot < 0.95) {
+            SDL_Log("Pursuit: By Predict: dot2 %f", dot2);
+            SDL_Log("Pursuit: By Predict: angle %f", angle);
+            auto lookaheadtime = glm::length(to) / (m->maxSpeed + em->maxSpeed);
+            lookaheadtime += TurnaroundTime(t, et);
+            target = et->position + em->velocity * lookaheadtime;
+        } else {
+            SDL_Log("Pursuit: By Seek: dot2 %f", dot2);
+            SDL_Log("Pursuit: By Seek: angle: %f", angle);
+        }
+
+        // TODO: Computing below is the same as the seek, so should be replaced
+        //       to a new common function.
+        auto direct = target - t->position;
+        auto dist = glm::length(direct);
+        if (dist < glm::epsilon<float>()) {
+            continue;
+        }
+        direct /= dist;
+
+        auto velocity = direct * m->maxSpeed;
+        auto steering = velocity - m->velocity;
+
+        auto lenS = glm::length(steering);
+        if (m->maxForce < lenS) {
+            steering /= lenS;
+            steering *= m->maxForce;
+        }
+
+        auto acc = steering / m->mass;
+        m->velocity += acc * dt;
+
+        auto lenV1 = glm::length(m->velocity);
+        if (m->maxSpeed < lenV1) {
+            m->velocity /= lenV1;
+            m->velocity *= m->maxSpeed;
+        }
+
+        t->position += m->velocity * dt;
+
+        auto lenV2 = glm::length(m->velocity);
+        if (lenV2 < glm::epsilon<float>()) {
+            return;
+        }
+        t->rotation = glm::normalize(m->velocity);
+    }
+}
+
+}  // behavior
 }  // steering
