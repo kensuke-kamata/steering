@@ -67,6 +67,54 @@ inline void Crosshair(SDL_Renderer *renderer, ecs::Scene &scene) {
         SDL_RenderDrawLine(renderer, p2.x, p2.y, p4.x, p4.y);
     }
 }
+
+inline void Circle(SDL_Renderer *renderer, ecs::Scene &scene) {
+    for (auto id : ecs::SceneView<component::Circle,
+                                  component::Transform,
+                                  component::Color>(scene)) {
+        auto circle = scene.GetComponent<component::Circle>(id);
+        auto radius = circle->radius;
+
+        auto transform = scene.GetComponent<component::Transform>(id);
+        auto   pos = transform->position;
+        auto scale = transform->scale;
+
+        auto color = scene.GetComponent<component::Color>(id);
+        SDL_SetRenderDrawColor(renderer, color->r, color->g, color->b, color->a);
+
+        // Based on x
+        for (auto x = -radius; x <= radius; x += 1.0f) {
+            auto y = glm::sqrt(radius * radius - x * x);
+            auto px = pos.x + x;
+            {
+                // Upper half
+                auto py = pos.y - y;
+                SDL_RenderDrawPoint(renderer, px, py);
+            }
+            {
+                // Lower half
+                auto py = pos.y + y;
+                SDL_RenderDrawPoint(renderer, px, py);
+            }
+        }
+
+        // Based on y
+        for (auto y = -radius; y <= radius; y += 1.0f) {
+            auto x = glm::sqrt(radius * radius - y * y);
+            auto py = pos.y + y;
+            {
+                // Left half
+                auto px = pos.x - x;
+                SDL_RenderDrawPoint(renderer, px, py);
+            }
+            {
+                // Right half
+                auto px = pos.x + x;
+                SDL_RenderDrawPoint(renderer, px, py);
+            }
+        }
+    }
+}
 }  // draw
 
 namespace update {

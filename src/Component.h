@@ -60,6 +60,11 @@ struct Crosshair : Shape {
     Crosshair(float radius) : Shape(radius) {}
 };
 
+struct Circle : Shape {
+    Circle() = default;
+    Circle(float radius) : Shape(radius) {}
+};
+
 struct Seek {};
 
 struct Flee {
