@@ -1,5 +1,7 @@
 #pragma once
 
+#include <random>
+
 #include <SDL.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
@@ -7,6 +9,7 @@
 #include <ECS.h>
 
 #include "Component.h"
+#include "Transformation.h"
 
 namespace steering {
 
@@ -213,6 +216,9 @@ inline void Flee(glm::vec2 target, ecs::Scene &scene, float dt) {
     }
 }
 
+/**
+ * Arrive behavior for entities.
+ */
 inline void Arrive(glm::vec2 target, ecs::Scene &scene, float dt) {
     for (auto id : ecs::SceneView<component::Arrive,
                                   component::Transform,
@@ -259,6 +265,9 @@ inline void Arrive(glm::vec2 target, ecs::Scene &scene, float dt) {
     }
 }
 
+/**
+ * Calculate the time an agent requires to reorient itself towards a target.
+ */
 inline float TurnaroundTime(component::Transform *pTransform,
                             component::Transform *eTransform) {
     auto to = glm::normalize(eTransform->position - pTransform->position);
@@ -268,6 +277,9 @@ inline float TurnaroundTime(component::Transform *pTransform,
     return (dot - 1.0f) * -coefficient;
 }
 
+/**
+ * Pursuit behavior for entities.
+ */
 inline void Pursuit(ecs::Scene &scene, float dt) {
     for (auto id : ecs::SceneView<component::Pursuit,
                                   component::Transform,
@@ -346,6 +358,111 @@ inline void Pursuit(ecs::Scene &scene, float dt) {
             return;
         }
         t->rotation = glm::normalize(m->velocity);
+    }
+}
+
+/**
+ * Evade behavior for entities.
+ */
+inline void Evade(ecs::Scene &scene, float dt) {
+    for (auto id : ecs::SceneView<component::Evade,
+                                  component::Transform,
+                                  component::Move>(scene)) {
+        auto e = scene.GetComponent<component::Evade>(id);
+        auto t = scene.GetComponent<component::Transform>(id);
+        auto m = scene.GetComponent<component::Move>(id);
+
+        if (!ecs::Entity::IsValid(e->pursuerId)) {
+            continue;
+        }
+        if (!scene.HasComponent<component::Transform>(e->pursuerId) ||
+            !scene.HasComponent<component::Move>(e->pursuerId)) {
+            continue;
+        }
+        auto pt = scene.GetComponent<component::Transform>(e->pursuerId);
+        auto pm = scene.GetComponent<component::Move>(e->pursuerId);
+
+        auto to = pt->position - t->position;
+        auto lookaheadtime = glm::length(to) / (m->maxSpeed + pm->maxSpeed);
+        auto target = pt->position + pm->velocity * lookaheadtime;
+
+        // TODO: The same process of Flee
+        auto direct = t->position - target;  // Flee direction from the target
+        auto dist = glm::length(direct);
+        if (dist < glm::epsilon<float>()) {
+            continue;
+        }
+        direct /= dist;
+
+        auto velocity = direct * m->maxSpeed;
+        auto steering = velocity - m->velocity;
+
+        auto lenS = glm::length(steering);
+        if (m->maxForce < lenS) {
+            steering /= lenS;
+            steering *= m->maxForce;
+        }
+
+        // Zero steering force if the target isn't in the escape radius
+        if (e->radius < dist) {
+            steering = glm::vec2(0.0f);
+        }
+        auto acc = steering / m->mass;
+        m->velocity += acc * dt;
+
+        auto lenV1 = glm::length(m->velocity);
+        if (m->maxSpeed < lenV1) {
+            m->velocity /= lenV1;
+            m->velocity *= m->maxSpeed;
+        }
+
+        t->position += m->velocity * dt;
+
+        auto lenV2 = glm::length(m->velocity);
+        if (lenV2 < glm::epsilon<float>()) {
+            return;
+        }
+        t->rotation = glm::normalize(m->velocity);
+    }
+}
+
+/**
+ *
+ */
+inline float RandomClamped() {
+    static std::default_random_engine engine(std::random_device{}());
+    static std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
+    return dist(engine);
+}
+
+/**
+ * Wander behavior for entities.
+ */
+inline void Wander(ecs::Scene &scene, float dt) {
+    for (auto id : ecs::SceneView<component::Wander,
+                                  component::Transform,
+                                  component::Move>(scene)) {
+        auto w = scene.GetComponent<component::Wander>(id);
+        auto t = scene.GetComponent<component::Transform>(id);
+        auto m = scene.GetComponent<component::Move>(id);
+
+        // Add a random small amount of random displacement to the target
+        w->target += glm::vec2(
+            RandomClamped() * w->jitter,
+            RandomClamped() * w->jitter
+        );
+
+        // Reproject the target into the wandering circle
+        w->target = glm::normalize(w->target);
+        w->target *= w->radius;
+
+        // Move the target ahead of the agent
+        auto targetLocal = w->target + glm::vec2(w->distance, 0);
+
+        // Project the target into the world coordinates
+        auto targetWorld = TransformToWorld(targetLocal, t);
+
+        auto to = targetWorld - t->position;
     }
 }
 

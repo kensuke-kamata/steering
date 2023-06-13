@@ -38,29 +38,36 @@ bool Game::Init() {
         return false;
     }
 
-    auto evader = scene_.NewEntity();
-    scene_.AddComponent<component::Seek>(evader);
+    auto wander = scene_.NewEntity();
+    auto agent = scene_.NewEntity();
+
+    scene_.AddComponent<component::Wander>(
+        wander,
+        glm::vec2(380.0f, 380.0f), // target (should be initialized its position)
+         10.0f, // radius
+        100.0f, // distance
+          5.0f  // jitter
+    );
     scene_.AddComponent<component::Triangle>(
-        evader,
+        wander,
         7.5f // radius
     );
     scene_.AddComponent<component::Transform>(
-        evader,
+        wander,
         glm::vec2(380.0f, 380.0f), // position
         glm::vec2(0.0f, -1.0f),    // rotation (head)
         glm::vec2(0.75f, 1.0f)     // scale
     );
     scene_.AddComponent<component::Move>(
-        evader,
+        wander,
         glm::vec2(0.0f, 0.0f), // velocity
           1.0f, // mass
         200.0f, // max speed
         100.0f  // max force
     );
-    scene_.AddComponent<component::Color>(evader, 255, 0, 255, 255);
+    scene_.AddComponent<component::Color>(wander, 255, 0, 255, 255);
 
-    auto agent = scene_.NewEntity();
-    scene_.AddComponent<component::Pursuit>(agent, evader);
+    scene_.AddComponent<component::Pursuit>(agent, wander);
     scene_.AddComponent<component::Triangle>(
         agent,
         15.0f // radius
@@ -152,6 +159,8 @@ void Game::Update() {
     behavior::Flee(glm::vec2(mouse_.x, mouse_.y), scene_, dt);
     behavior::Arrive(glm::vec2(mouse_.x, mouse_.y), scene_, dt);
     behavior::Pursuit(scene_, dt);
+    behavior::Evade(scene_, dt);
+    behavior::Wander(scene_, dt);
 
     ticks_ = SDL_GetTicks();
 }
