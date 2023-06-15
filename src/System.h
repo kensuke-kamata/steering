@@ -494,23 +494,69 @@ inline void Wander(ecs::Scene &scene, float dt) {
         auto t = scene.GetComponent<component::Transform>(id);
         auto m = scene.GetComponent<component::Move>(id);
 
+        auto  target = w->target;
+        auto forward = w->forward;
+
+        auto tt = scene.GetComponent<component::Transform>(target);
+        auto ft = scene.GetComponent<component::Transform>(forward);
+
+        auto fc = scene.GetComponent<component::Circle>(forward);
+
         // Add a random small amount of random displacement to the target
-        w->target += glm::vec2(
+        tt->position += glm::vec2(
             RandomClamped() * w->jitter,
             RandomClamped() * w->jitter
         );
 
         // Reproject the target into the wandering circle
-        w->target = glm::normalize(w->target);
-        w->target *= w->radius;
+        tt->position = glm::normalize(tt->position);
+        tt->position *= w->radius;
+        fc->radius    = w->radius;
 
         // Move the target ahead of the agent
-        auto targetLocal = w->target + glm::vec2(w->distance, 0);
+        ft->position = t->position + t->rotation * w->distance;
+        tt->position = t->position + t->rotation * w->distance + tt->position;
 
-        // Project the target into the world coordinates
-        auto targetWorld = TransformToWorld(targetLocal, t);
+        auto direct = tt->position - t->position;
+        auto dist = glm::length(direct);
+        if (dist < glm::epsilon<float>()) {
+            continue;
+        }
+        direct /= dist;
 
-        auto to = targetWorld - t->position;
+        // Compute the desired velocity and steering force.
+        auto velocity = direct * m->maxSpeed;
+        auto steering = velocity - m->velocity;
+
+        // Limit the steering force to the maximum allowed force.
+        // This help to create smooth movement, preventing the entity from
+        // instantly turning around to face the target.
+        auto lenS = glm::length(steering);
+        if (m->maxForce < lenS) {
+            steering /= lenS;
+            steering *= m->maxForce;
+        }
+
+        // Calculate acceleration based on the steering force.
+        auto acc = steering / m->mass;
+        m->velocity += acc * dt;
+
+        // Limit the entity's speed to its maxmum speed.
+        auto lenV1 = glm::length(m->velocity);
+        if (m->maxSpeed < lenV1) {
+            m->velocity /= lenV1;
+            m->velocity *= m->maxSpeed;
+        }
+
+        // Update the entity's position.
+        t->position += m->velocity * dt;
+
+        // If the entity is stationary, skip the rotation step.
+        auto lenV2 = glm::length(m->velocity);
+        if (lenV2 < glm::epsilon<float>()) {
+            return;
+        }
+        t->rotation = glm::normalize(m->velocity);
     }
 }
 

@@ -99,15 +99,17 @@ struct Evade {
 };
 
 struct Wander {
-    Wander() = default;
-    Wander(glm::vec2 target, float radius, float distance, float jitter)
+    Wander(ecs::Entity::Id target, ecs::Entity::Id forward,
+           float radius, float distance, float jitter)
         : target(target),
-          radius(radius),
+          forward(forward),
           distance(distance),
           jitter(jitter) {}
 
-    glm::vec2 target{ glm::vec2(0.0f, 0.0f) };
-    float radius{ 10.0f };
+    ecs::Entity::Id target;
+    ecs::Entity::Id forward;
+
+    float radius{ 25.0f };
     float distance{ 100.0f };
     float jitter{ 5.0f };
 };

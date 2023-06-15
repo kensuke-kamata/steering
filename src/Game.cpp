@@ -38,19 +38,44 @@ bool Game::Init() {
         return false;
     }
 
+    auto target = scene_.NewEntity();
+    auto circle = scene_.NewEntity();
+    scene_.AddComponent<component::Circle>(
+        target,
+        5.0f    // radius
+    );
+    scene_.AddComponent<component::Circle>(
+        circle,
+        25.0f   // radius (could be changed)
+    );
+    scene_.AddComponent<component::Transform>(
+        target,
+        glm::vec2(0.0f, 0.0f),
+        glm::vec2(0.0f, -1.0f),
+        glm::vec2(1.0f, 1.0f)
+    );
+    scene_.AddComponent<component::Transform>(
+        circle,
+        glm::vec2(0.0f, 0.0f),
+        glm::vec2(0.0f, -1.0f),
+        glm::vec2(1.0f, 1.0f)
+    );
+    scene_.AddComponent<component::Color>(target, 255, 0, 0, 255);
+    scene_.AddComponent<component::Color>(circle, 0, 255, 0, 255);
+
     auto wander = scene_.NewEntity();
     auto agent = scene_.NewEntity();
-
     scene_.AddComponent<component::Wander>(
         wander,
-        glm::vec2(380.0f, 380.0f), // target (should be initialized its position)
-         10.0f, // radius
-        100.0f, // distance
-          5.0f  // jitter
+        target,
+        circle,
+         25.0f, // radius
+         35.0f, // distance
+         50.0f  // jitter
     );
     scene_.AddComponent<component::Triangle>(
         wander,
-        7.5f // radius
+        10.0f // radius
     );
     scene_.AddComponent<component::Transform>(
         wander,
@@ -65,7 +90,7 @@ bool Game::Init() {
         200.0f, // max speed
         100.0f  // max force
     );
-    scene_.AddComponent<component::Color>(wander, 255, 0, 255, 255);
+    scene_.AddComponent<component::Color>(wander, 0, 0, 255, 255);
 
     scene_.AddComponent<component::Pursuit>(agent, wander);
     scene_.AddComponent<component::Triangle>(
@@ -171,6 +196,7 @@ void Game::Draw() {
 
     draw::Crosshair(renderer_, scene_);
     draw::Triangle(renderer_, scene_);
+    draw::Circle(renderer_, scene_);
 
     SDL_RenderPresent(renderer_);
 }
