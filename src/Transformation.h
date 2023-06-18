@@ -21,7 +21,7 @@ inline glm::mat3 TransformMatrix(
     transform[1][1] = scale.y;
 
     // Apply rotation
-    float rotation = std::atan2(heading.y, heading.x);
+    float rotation = std::atan2(-heading.y, heading.x); // Downwards if positive in SDL
     float c = std::cos(rotation);
     float s = std::sin(rotation);
     glm::mat3 rotate(
