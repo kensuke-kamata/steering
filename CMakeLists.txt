@@ -30,3 +30,26 @@ target_link_libraries(${PROJECT_NAME}
 include_directories(${PROJECT_NAME}
     ${GLM_INCLUDE_DIRS}
 )
+
+# Unit Test
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.13.0.zip
+    DOWNLOAD_EXTRACT_TIMESTAMP true
+)
+
+if (WIN32)
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+endif()
+FetchContent_MakeAvailable(googletest)
+
+enable_testing()
+
+set(TEST test_steering)
+add_executable(${TEST} ${CMAKE_SOURCE_DIR}/test/TestTransformation.cpp)
+
+target_link_libraries(${TEST} gtest_main)
+include_directories(${TEST} ${CMAKE_SOURCE_DIR}/src)
+
+add_test(NAME ${TEST} COMMAND ${TEST})
