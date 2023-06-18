@@ -11,8 +11,8 @@
 
 namespace steering {
 
-constexpr unsigned int SCREEN_W(500);
-constexpr unsigned int SCREEN_H(500);
+constexpr unsigned int SCREEN_W(1440);
+constexpr unsigned int SCREEN_H(1440);
 
 class Game {
 public:

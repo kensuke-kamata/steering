@@ -109,6 +109,7 @@ struct Wander {
     ecs::Entity::Id target;
     ecs::Entity::Id forward;
 
+    glm::vec2 point{ glm::vec2(0.0f) };
     float radius{ 25.0f };
     float distance{ 100.0f };
     float jitter{ 5.0f };

@@ -99,3 +99,50 @@ struct Pursuit {
 // System interface
 inline void Arrive(ecs::Scene &scene, float dt);
 ```
+
+### `Evade`
+
+```c++
+// Defined Component
+struct Evade {
+    Evade() = default;
+    Evade(ecs::Entity::Id pursuerId, float radius)
+        : pursuerId(pursuerId),
+          radius(radius) {}
+
+    ecs::Entity::Id pursuerId{ static_cast<ecs::Entity::Id>(-1) };
+    float radius{ 100.0f };
+};
+```
+
+```c++
+// System interface
+inline void Evade(ecs::Scene &scene, float dt);
+```
+
+### `Wander`
+
+```c++
+// Defined Component
+struct Wander {
+    Wander(ecs::Entity::Id target, ecs::Entity::Id forward,
+           float radius, float distance, float jitter)
+        : target(target),
+          forward(forward),
+          distance(distance),
+          jitter(jitter) {}
+
+    ecs::Entity::Id target;
+    ecs::Entity::Id forward;
+
+    glm::vec2 point{ glm::vec2(0.0f) };
+    float radius{ 25.0f };
+    float distance{ 100.0f };
+    float jitter{ 5.0f };
+};
+```
+
+```c++
+// System interface
+inline void Wander(ecs::Scene &scene, float dt) {
+```

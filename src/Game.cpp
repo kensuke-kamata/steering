@@ -71,7 +71,7 @@ bool Game::Init() {
         circle,
          25.0f, // radius
          35.0f, // distance
-         50.0f  // jitter
+        350.0f  // jitter
     );
     scene_.AddComponent<component::Triangle>(
         wander,
