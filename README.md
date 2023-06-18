@@ -144,5 +144,5 @@ struct Wander {
 
 ```c++
 // System interface
-inline void Wander(ecs::Scene &scene, float dt) {
+inline void Wander(ecs::Scene &scene, float dt);
 ```
